@@ -1,0 +1,2 @@
+# xiaomaMusic
+基于vue3和python构建的部署在树莓派上的音乐点歌平台
