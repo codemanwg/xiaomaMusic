@@ -1,0 +1,476 @@
+$vm_base: 1920;
+@function vm($px) {
+    @return ($px/$vm_base) * 100vw;
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding-top: vm(120);
+    font-family: Microsoft YaHei;
+    box-sizing: border-box;
+}
+
+$border-color: rgb(222, 222, 222);
+$bg-color: rgb(246, 246, 246);
+$icon-color: #424242;
+
+.download-wrap {
+    position: absolute;
+    left: vm(70);
+    top: vm(90);
+    height: vm(715);
+    width: vm(250);
+    .msg-box {
+        position: relative;
+        width: 100%;
+        margin-bottom: vm(20);
+        font-size: vm(17);
+        line-height: vm(25);
+    }
+    .download-list {
+        position: relative;
+        width: vm(200);
+        height: vm(30);
+        line-height: vm(30);
+        color: rgb(101, 101, 101);
+        font-size: vm(16);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.main {
+    position: relative;
+    width: vm(1180);
+    height: vm(715);
+    margin: 0 auto;
+    box-shadow: vm(0) vm(0) vm(15) rgba(0, 0, 0, 0.35);
+    z-index: 999;
+}
+
+.top-action {
+    position: absolute;
+    top: vm(-20);
+    left: 0;
+    height: vm(20);
+    font-size: vm(16);
+    .top-cell {
+        position: relative;
+        float: left;
+        width: vm(100);
+        height: 100%;
+        text-align: center;
+        line-height: vm(20);
+        background: rgb(220, 220, 220);
+        border-bottom: none;
+        border-top-left-radius: vm(8);
+        border-top-right-radius: vm(8);
+        box-shadow: vm(0) vm(0) vm(15) rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+    }
+    .top-selected {
+        background: $bg-color;
+    }
+}
+
+.header-bar {
+    position: relative;
+    width: vm(1180);
+    height: vm(46);
+    border-bottom: vm(1) solid $border-color;
+    background: $bg-color;
+    overflow: hidden;
+    // .logo {
+    //     float: left;
+    //     position: relative;
+    //     width: vm(100);
+    //     // height: vm(30);
+    //     // margin: vm(8) vm(0) vm(8) vm(60);
+    //     font-size: vm(17);
+    //     line-height: vm(47);
+    //     text-align: center;
+    //     cursor: pointer;
+    //     &:hover{
+    //         background: rgb(222, 222, 222);
+    //     }
+    //     // background: url(../img/logo.svg) no-repeat center;
+    //     // background-size: contain;
+    //     // filter: grayscale(1);
+    // }
+    .search-box {
+        position: relative;
+        width: 30%;
+        height: vm(30);
+        margin: vm(8) auto;
+        border-radius: vm(25);
+        background: rgb(236, 236, 236);
+        &::after {
+            content: "";
+            position: absolute;
+            top: vm(7);
+            left: vm(8);
+            width: vm(16);
+            height: vm(16);
+            background: url(../img/search.svg) no-repeat center;
+            background-size: contain;
+        }
+        .search-input {
+            position: relative;
+            width: 80%;
+            height: vm(16);
+            padding: 0 vm(2);
+            margin: vm(7) 0 vm(7) vm(32);
+            border: none;
+            outline: none;
+            font-size: vm(15);
+            background-color: transparent;
+        }
+    }
+}
+
+.music-wrap {
+    position: relative;
+    width: 100%;
+    font-size: vm(15);
+    box-sizing: border-box;
+    background: white;
+    .title-row {
+        position: relative;
+        width: vm(1180);
+        height: vm(42);
+        line-height: vm(42);
+        padding-right: vm(6);
+        background: rgb(250, 250, 250);
+        box-sizing: border-box;
+        .title-cell {
+            position: relative;
+            display: inline-block;
+            &:first-child {
+                width: 12%;
+                text-align: center;
+            }
+            &:nth-child(2) {
+                width: 50%;
+            }
+            &:nth-child(3) {
+                width: 25%;
+            }
+            &:last-child {
+                width: 10%;
+            }
+        }
+    }
+    .music-list {
+        position: relative;
+        width: 100%;
+        height: vm(41 * 13);
+        overflow-y: auto;
+        .music-item {
+            position: relative;
+            width: 100%;
+            height: vm(35);
+            padding: vm(3) 0;
+            color: $icon-color;
+            line-height: vm(35);
+            user-select: none;
+            &:nth-child(even) {
+                background: rgb(250, 250, 250);
+            }
+            &:hover {
+                background: rgb(242, 242, 242);
+            }
+            .item-cell {
+                position: relative;
+                display: inline-block;
+                &:first-child {
+                    width: 12%;
+                    text-align: center;
+                    .playing-icon {
+                        position: absolute;
+                        display: block;
+                        top: vm(8);
+                        left: vm(15);
+                        width: vm(19);
+                        height: vm(19);
+                        background: url(../img/playing.svg) no-repeat center;
+                        background-size: contain;
+                        animation: spin 5s infinite linear;
+                    }
+                }
+                &:nth-child(2) {
+                    width: 50%;
+                }
+                &:nth-child(3) {
+                    width: 25%;
+                }
+                &:last-child {
+                    width: 10%;
+                }
+            }
+            .download-btn {
+                position: relative;
+                width: vm(100);
+                height: vm(29);
+                margin-top: vm(3);
+                line-height: vm(29);
+                border-radius: vm(5);
+                background: rgb(243, 234, 42);
+                text-align: center;
+                cursor: pointer;
+                transition: all 0.25s;
+                &:not(.download-disabled):hover {
+                    color: rgb(243, 234, 42);
+                    background: rgb(175, 172, 107);
+                }
+            }
+            .download-disabled {
+                cursor: not-allowed;
+            }
+        }
+        .music-playing {
+            background: rgb(230, 230, 230) !important;
+            &:hover {
+                background: rgb(230, 230, 230) !important;
+            }
+        }
+    }
+}
+
+.action-bar {
+    position: relative;
+    width: 100%;
+    height: vm(100);
+    padding: vm(12) vm(24);
+    border-top: vm(1) solid $border-color;
+    background: $bg-color;
+    box-sizing: border-box;
+    .note {
+        float: left;
+        width: 5%;
+        height: 100%;
+        margin: 0 2% 0 1%;
+    }
+    .note-gif {
+        animation: note-rhythm 1.5s infinite ease-in-out;
+    }
+    .note-static {
+        background: url(../img/note-03.svg) no-repeat center;
+        background-size: contain;
+    }
+    .song-info {
+        float: left;
+        width: 20%;
+        height: 100%;
+        color: rgb(66, 66, 66);
+        .title {
+            margin-top: vm(2);
+            font-size: vm(20);
+            line-height: vm(38);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .singer {
+            font-size: vm(16);
+            line-height: vm(30);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+    .button-box {
+        float: left;
+        width: 70%;
+        height: 100%;
+        .button {
+            position: relative;
+            display: inline-block;
+            width: 3.5%;
+            height: 100%;
+            margin: 0 vm(35);
+            cursor: pointer;
+            &:first-child {
+                margin-left: vm(20);
+            }
+            &:last-child {
+                margin-left: vm(20);
+            }
+        }
+        $btn-list: "loop", "random", "pre", "play", "pause", "next", "volume", "mute";
+        @for $i from 1 through length($btn-list) {
+            $btn: nth($btn-list, $i);
+            .btn-#{$btn} {
+                background: url("../img/#{$btn}.svg") no-repeat center;
+                background-size: contain;
+                transition: all 0.23s;
+                &:hover {
+                    background: url("../img/#{$btn}-hover.svg") no-repeat center;
+                    background-size: contain;
+                }
+            }
+        }
+        .volume-box {
+            position: relative;
+            display: inline-block;
+            width: vm(300);
+            height: 100%;
+            .progress {
+                position: relative;
+                width: 263px;
+                height: vm(3);
+                margin-top: vm(36);
+                background: $icon-color;
+                border-radius: vm(25);
+            }
+            .drag-btn {
+                position: absolute;
+                top: vm(31);
+                width: vm(13);
+                height: vm(13);
+                border-radius: 50%;
+                background: rgb(244, 234, 42);
+                cursor: pointer;
+            }
+            .value {
+                position: absolute;
+                left: vm(275);
+                top: vm(27);
+                font-size: vm(15);
+                line-height: vm(21);
+                color: rgb(130, 130, 130);
+            }
+        }
+    }
+}
+
+.menu-wrapper {
+    position: absolute;
+    top: vm(47);
+    left: vm(-30);
+    height: vm(715);
+    font-size: vm(16);
+    z-index: -1;
+    .menu-item {
+        position: relative;
+        width: vm(30);
+        height: vm(82);
+        line-height: vm(20);
+        padding: vm(10) vm(5);
+        text-align: center;
+        word-break: break-all;
+        background-color: rgb(220, 220, 220);
+        border-bottom: none;
+        border-top-left-radius: vm(5);
+        border-bottom-left-radius: vm(5);
+        box-shadow: 0 0 vm(15) rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+    .menu-selected {
+        color: rgb(244, 244, 244);
+        background-color: rgba(64, 158, 255, 0.5);
+        z-index: 999;
+    }
+    .add-menu {
+        background-color: rgb(220, 220, 220);
+        color: rgb(56, 59, 72);
+        height: vm(50);
+        line-height: vm(30);
+        font-size: vm(18);
+        font-weight: 600;
+    }
+}
+
+.add-menu-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 999;
+    .input-border {
+        position: relative;
+        width: vm(320);
+        height: vm(36);
+        padding: vm(6) vm(24);
+        margin: vm(450) auto;
+        border-radius: vm(6);
+        background: white;
+        box-sizing: border-box;
+        box-shadow: 0 0 vm(15) rgba(255, 255, 255, 0.6);
+        .menu-input {
+            position: relative;
+            float: left;
+            width: vm(240);
+            height: vm(24);
+            line-height: vm(24);
+            font-size: vm(18);
+            outline: none;
+            border: 0;
+            padding: 0;
+            letter-spacing: vm(1);
+        }
+    }
+}
+
+.delete-wrapper {
+    position: absolute;
+    top: vm(120);
+    right: vm(100);
+    width: vm(200);
+    height: vm(715);
+    border: vm(2) dashed rgba(66, 66, 66, 0.3);
+    border-radius: vm(3);
+    background: url(../img/del.svg) no-repeat center;
+    background-size: 90%;
+    transition: background-color 0.3s;
+}
+
+.drag-over {
+    color: rgb(244, 244, 244);
+    background-color: rgba(64, 158, 255, 0.5) !important;
+}
+
+@keyframes note-rhythm {
+    0% {
+        background: url(../img/note-01.svg) no-repeat center;
+        background-size: contain;
+    }
+    33% {
+        background: url(../img/note-02.svg) no-repeat center;
+        background-size: contain;
+    }
+    66% {
+        background: url(../img/note-03.svg) no-repeat center;
+        background-size: contain;
+    }
+    100% {
+        background: url(../img/note-01.svg) no-repeat center;
+        background-size: contain;
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(359deg);
+    }
+}
+
+.music-list {
+    &::-webkit-scrollbar {
+        width: vm(7);
+    }
+    &::-webkit-scrollbar-track {
+    }
+    &::-webkit-scrollbar-thumb {
+        border-radius: vm(10);
+        background: rgb(225, 225, 225);
+    }
+}

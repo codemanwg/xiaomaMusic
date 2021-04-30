@@ -1,0 +1,68 @@
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding-top: 6.25vw;
+  font-family: Microsoft YaHei;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+.login-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url(../img/bg.jpg) no-repeat center;
+  background-size: cover;
+  z-index: 999;
+}
+
+.login-wrapper .input-border {
+  position: relative;
+  width: 16.66667vw;
+  height: 1.875vw;
+  padding: 0.3125vw 1.25vw;
+  margin: 23.4375vw auto;
+  border-radius: 0.3125vw;
+  background: white;
+  -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+  -webkit-box-shadow: 0 0 0.78125vw rgba(255, 255, 255, 0.6);
+          box-shadow: 0 0 0.78125vw rgba(255, 255, 255, 0.6);
+  opacity: 0.7;
+}
+
+.login-wrapper .input-border .username-input {
+  position: relative;
+  float: left;
+  width: 12.5vw;
+  height: 1.25vw;
+  line-height: 1.25vw;
+  font-size: 0.9375vw;
+  outline: none;
+  border: 0;
+  padding: 0;
+  letter-spacing: 0.05208vw;
+}
+
+.login-wrapper .input-border .login-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2.1875vw;
+  height: 1.875vw;
+  line-height: 1.875vw;
+  border-radius: 0 0.26042vw 0.26042vw 0;
+  font-size: 0.9375vw;
+  background: url(../img/login.svg) no-repeat center, #102438;
+  background-size: contain;
+  color: #f6f6f6;
+  cursor: pointer;
+}
+
+.login-wrapper .input-border .login-btn:active {
+  background-color: #021425;
+}
+/*# sourceMappingURL=login.css.map */

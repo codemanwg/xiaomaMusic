@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style/normalize.css">
+    <link rel="stylesheet" href="./style/index.css">
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+    <title>小马音乐</title>
+</head>
+
+<body>
+    <div id="app">
+        <div class="download-wrap">
+            <div class="msg-box">{{message}}</div>
+            <div class="download-list" v-for="item,index in download_queue" :key="index">
+                {{item.title}}-{{item.singer}}
+            </div>
+        </div>
+
+        <div class="main">
+            <div class="top-action">
+                <div :class="['top-cell',menu_selected===item.id?'top-selected':'']"
+                    v-for="item in menu_list.slice(0,2).reverse()" :key="item.id" @click="handleMenuSelect(item.id)">
+                    {{item.name}}</div>
+            </div>
+            <div class="header-bar">
+                <div class="search-box">
+                    <input :value="filter_value" type="text" class="search-input" placeholder="搜索音乐"
+                        @compositionstart="filterStart" @compositionend="filterEnd" @input="handleFilter($event)"
+                        v-if="menu_selected!==999">
+                    <input v-model="search_value" type="text" class="search-input" placeholder="搜索音乐"
+                        @keyup.enter.native="handleSearch" v-else>
+                </div>
+            </div>
+            <div class="music-wrap">
+                <div class="title-row">
+                    <div class="title-cell"></div>
+                    <div class="title-cell">音乐标题</div>
+                    <div class="title-cell">歌手</div>
+                    <div class="title-cell">{{menu_selected!==999?'时长':''}}</div>
+                </div>
+                <div class="music-list local_list" v-if="menu_selected!==999">
+                    <div :class="['music-item',item.song_id===current_music.id &&  current_music.album_id === menu_selected?'music-playing':'']"
+                        v-for="item,index in music_local_list" :key="index" @dblclick="playMusic(index, item.song_id, item.album_id)"
+                        draggable="true" @dragstart="dragStart($event, item)" @dragend="dragEnd($event)">
+                        <div class="item-cell index">
+                            <span class="playing-icon"
+                                v-show="item.song_id===current_music.id &&  current_music.album_id === menu_selected"></span>{{(index+1).toString().padStart(2,0)}}
+                        </div>
+                        <div class="item-cell title">{{item.title}}</div>
+                        <div class="item-cell singer">{{singerFilter(item.singer)}}</div>
+                        <div class="item-cell duration">{{durationFilter(item.duration)}}</div>
+                    </div>
+                </div>
+                <div class="music-list search_list" v-else>
+                    <div class="music-item" v-for="item,index in music_search_list" :key="index">
+                        <div class="item-cell index">{{(index+1).toString().padStart(2,0)}}</div>
+                        <div class="item-cell title">{{item.title}}</div>
+                        <div class="item-cell singer">{{singerFilter(item.singer)}}</div>
+                        <div class="item-cell download">
+                            <div :class="['download-btn', item.url==''?'download-disabled':'']"
+                                @click="downloadMusic(item)">下载</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="action-bar">
+                <div :class="['note', play_status=='pause'?'note-gif':'note-static']"></div>
+                <div class="song-info">
+                    <div class="title">{{current_music.title}}</div>
+                    <div class="singer">{{current_music.singer}}</div>
+                </div>
+                <div class="button-box">
+                    <div :class="['button','btn-mode',`btn-${play_mode}`]" @click="handePlayMode"></div>
+                    <div class="button btn-pre" @click="preMusic"></div>
+                    <div :class="['button',`btn-${play_status}`]" @click="handePlayStatus"></div>
+                    <div class="button btn-next" @click="nextMusic"></div>
+                    <div :class="['button',`btn-${volume_mode}`]" @click="handeVolumeMode"></div>
+                    <div class="volume-box">
+                        <div class="progress" ref="progress"></div>
+                        <div class="drag-btn" ref="drag_btn" @mousedown="handelMouseDown"></div>
+                        <div class="value">{{volume_value.toFixed(0)}}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="menu-wrapper">
+                <div :id="item.id" :class="['menu-item',menu_selected===item.id?'menu-selected':'']"
+                    v-for="item in menu_list.slice(2)" @click="handleMenuSelect(item.id)"
+                    @dragover.prevent="dragOver($event)" @dragleave.prevent="dragLeave($event)"
+                    @drop="drop($event, 'add')">
+                    {{item.name}}
+                </div>
+                <div class="menu-item add-menu" @click="menu_add_visible=true">+</div>
+            </div>
+        </div>
+
+        <div class="add-menu-wrapper" v-show="menu_add_visible" @click.stop="menu_add_visible=false">
+            <div class="input-border">
+                <input class="menu-input" type="text" v-model="menu_input" @keyup.enter="addMenu" maxlength="6"
+                    placeholder="请输入歌单名" @click.stop="" />
+            </div>
+        </div>
+
+        <div class="delete-wrapper" v-show="del_visible" @dragover.prevent="dragOver($event)"
+            @dragleave.prevent="dragLeave($event)" @drop="drop($event, 'del')"></div>
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script type="module" type='text/javascript'>
+        const app = Vue.createApp({
+            setup() {
+                let username = localStorage.getItem('username')
+                let ws = new WebSocket('ws://192.168.1.116:8888/' + generate_uuid() + '/');
+                ws.onopen = () => {
+                    ws.send(JSON.stringify({ 'path': 'music/local' }))
+                    getPlayerInfo()
+                }
+                ws.onmessage = event => {
+                    let response = JSON.parse(event.data);
+                    let api = response.api
+                    let data = response.data
+                    api_map[api](data)
+                }
+                ws.onclose = () => {
+                    console.log('连接已关闭...');
+                }
+
+                let current_music = Vue.ref({})
+                let current_album_id = Vue.ref({})
+                let rowMusicList = []
+                let music_local_list = Vue.ref([])
+                let music_search_list = Vue.ref([])
+
+                let api_map = {
+                    'music/playerInfo': receivePlayerInfo,
+                    'music/local': receiveLocalMusic,
+                    'music/menu': receiveMenuMusic,
+                    'music/search': handleSearchMusic,
+                    'music/download': receiveDownLoad,
+                    'music/playMode': receiveplayMode,
+                    'music/play': receviePlayMusic,
+                    'music/pause': recevicePauseMusic,
+                    'music/unpause': receviceUnpauseMusic,
+                    'music/pre': receivePreMusic,
+                    'music/next': receiveNextMusic,
+                    'music/volume': receiveVolume,
+                    'music/menu/add': receiveMenu,
+                    'music/msg': receiveMsg
+                }
+                function receivePlayerInfo(data) {
+                    console.log(data);
+                    play_mode.value = data.mode
+                    current_music.value = data.music
+                    play_status.value = data.play_status ? 'pause' : 'play'
+                    volume_value.value = data.volume * 100
+                    // menu_selected.value = data.current_menu
+                    receiveMenu(data.menu_list)
+                    handleDragBtn()
+                    // if (data.current_menu === null) {
+                    //     ws.send(JSON.stringify({ 'path': 'music/local' }))
+                    // } else {
+                    //     handleMenuSelect(data.current_menu)
+                    // }
+
+                }
+                function receiveLocalMusic(data) {
+                    // if (data.player_status) { getPlayerInfo() }
+                    rowMusicList = data.music_list
+                    music_local_list.value = data.music_list
+                    // menu_selected.value = 1000
+                }
+                function receiveMenuMusic(data) {
+                    rowMusicList = data.music_list
+                    music_local_list.value = data.music_list
+                }
+                function handleSearchMusic(data) {
+                    music_search_list.value = data.music_list
+                }
+                let download_queue = Vue.ref([])
+                function receiveDownLoad(data) {
+                    download_queue.value = data
+                }
+                function receiveplayMode(data) {
+                    play_mode.value = data.play_mode
+                }
+                function receviePlayMusic(data) {
+                    current_music.value = data
+                    console.log(current_music.value)
+                    play_status.value = 'pause'
+                }
+                function recevicePauseMusic(data) {
+                    play_status.value = data.play_status
+                }
+                function receviceUnpauseMusic(data) {
+                    play_status.value = data.play_status
+                }
+                function receivePreMusic(data) {
+                    receviePlayMusic(data)
+                }
+                function receiveNextMusic(data) {
+                    receviePlayMusic(data)
+                }
+                function receiveVolume(data) {
+                    volume_value.value = data
+                    handleDragBtn()
+                }
+                function receiveMenu(data) {
+                    menu_list.value = raw_menu.concat(data)
+                }
+                let message = Vue.ref('')
+                function receiveMsg(msg) {
+                    message.value = msg
+                }
+
+                function getPlayerInfo() {
+                    ws.send(JSON.stringify({ 'path': 'music/playerInfo' }))
+                }
+                function playMusic(index, song_id, album_id) {
+                    ws.send(JSON.stringify({ 'path': 'music/play', 'query': { 'index': index, 'song_id': song_id, 'album_id': album_id} }))
+                }
+                function preMusic(params) {
+                    ws.send(JSON.stringify({ 'path': 'music/pre' }))
+                }
+                function nextMusic(params) {
+                    ws.send(JSON.stringify({ 'path': 'music/next' }))
+                }
+
+                let input_lock = false
+                function filterStart() {
+                    input_lock = true
+                }
+                function filterEnd() {
+                    input_lock = false
+                }
+                let filter_value = Vue.ref('')
+                function handleFilter(event) {
+                    if (input_lock) return
+                    filter_value.value = event.target.value
+                    let value = filter_value.value.replace(/(\s*$)/g, "").toUpperCase()
+                    let filter_music_list = rowMusicList.filter(item => {
+                        let title = item.title.toUpperCase()
+                        let singer = item.singer.toUpperCase()
+                        return (title.indexOf(value) != -1) || (singer.indexOf(value) != -1)
+                    })
+                    music_local_list.value = filter_music_list
+                }
+                let search_value = Vue.ref('')
+                function handleSearch() {
+                    ws.send(JSON.stringify({ 'path': 'music/search', 'query': { 'search_value': search_value.value } }))
+                }
+                function downloadMusic(music) {
+                    ws.send(JSON.stringify({ 'path': 'music/download', 'query': { 'music': music } }))
+                }
+                let play_mode = Vue.ref('loop')
+                function handePlayMode() {
+                    let mode = play_mode.value == 'loop' ? 'random' : 'loop'
+                    ws.send(JSON.stringify({ 'path': 'music/playMode', query: { 'mode': mode } }))
+                }
+                let play_status = Vue.ref('play')
+                function handePlayStatus() {
+                    if (play_status.value == 'play') {
+                        play_status.value = 'pause'
+                        ws.send(JSON.stringify({ 'path': 'music/unpause' }))
+                    } else {
+                        play_status.value = 'play'
+                        ws.send(JSON.stringify({ 'path': 'music/pause' }))
+                    }
+                }
+                let volume_mode = Vue.ref('volume')
+                function handeVolumeMode() {
+                    volume_mode.value = volume_mode.value == 'volume' ? 'mute' : 'volume'
+                }
+                let volume_value = Vue.ref(0)
+
+                function durationFilter(seconds) {
+                    let mm = parseInt(seconds / 60)
+                    let ss = (seconds % 60).toString().padStart(2, 0)
+                    return `${mm}:${ss}`
+                }
+                function singerFilter(value) {
+                    return value.length >= 18 ? `${value.slice(0, 18)}...` : value
+                }
+
+                let raw_menu = [{ id: 999, name: '搜索' }, { id: 0, name: '所有' }]
+                let menu_list = Vue.ref([])
+                let menu_selected = Vue.ref(0)
+                function handleMenuSelect(menu_id) {
+                    if (menu_id ===  0) {
+                        ws.send(JSON.stringify({ 'path': 'music/local' }))
+                    } else if (menu_id !== 999) {
+                        ws.send(JSON.stringify({ 'path': 'music/menu', query: { 'menu_id': menu_id } }))
+                    }
+                    menu_selected.value = menu_id
+                    console.log(menu_id)
+                    
+                }
+
+                let menu_input = Vue.ref('')
+                let menu_add_visible = Vue.ref(false)
+                function addMenu() {
+                    if (menu_input.value) {
+                        ws.send(JSON.stringify({ 'path': 'music/menu/add', query: { 'menu_name': menu_input.value } }))
+                        menu_add_visible.value = false
+                    }
+                }
+
+                // document.onkeydown = function (e) {
+                //     if (e.code == 'Space') { handePlayStatus() }
+                // }
+                let progress = Vue.ref()
+                let drag_btn = Vue.ref()
+                function handelMouseDown(e) {
+                    let disx = e.pageX - drag_btn.value.offsetLeft
+                    let progress_width = progress.value.clientWidth - drag_btn.value.clientWidth
+                    document.onmousemove = function (e) {
+                        let offsetx = e.pageX - disx
+                        if (offsetx >= 0 && offsetx <= progress_width) {
+                            drag_btn.value.style.left = offsetx + 'px'
+                            volume_value.value = Math.floor(offsetx / progress_width * 100)
+                        }
+                    }
+                    document.onmouseup = function () {
+                        document.onmousemove = document.onmouseup = null;
+                        ws.send(JSON.stringify({ 'path': 'music/volume', 'query': { 'volume_value': volume_value.value } }))
+                    }
+                }
+                function handleDragBtn() {
+                    drag_btn.value.style.left = (volume_value.value / 100) * (progress.value.clientWidth - drag_btn.value.clientWidth) + 'px'
+                }
+
+                let del_visible = Vue.ref(false)
+                function dragStart(event, obj) {
+                    event.stopPropagation();
+                    if (menu_selected.value !== 0) del_visible.value = true
+                    event.dataTransfer.setData("obj", JSON.stringify(obj));
+                }
+                function dragEnd(event) {
+                    if (menu_selected.value !== 0) del_visible.value = false
+                }
+                function dragOver(event) {
+                    if (menu_selected.value === 0) {
+                        event.target.classList.add('drag-over')
+                    } else if (event.target.className === 'delete-wrapper') {
+                        event.target.classList.add('drag-over')
+                    }
+                }
+                function dragLeave(event) {
+                    if (menu_selected.value === 0) {
+                        event.target.classList.remove('drag-over')
+                    } else if (event.target.className === 'delete-wrapper') {
+                        event.target.classList.add('drag-over')
+                    }
+                }
+                function drop(event, type) {
+                    del_visible.value = false
+                    event.target.classList.remove('drag-over')
+
+                    let menu_id = event.target.id;
+                    let obj = JSON.parse(event.dataTransfer.getData("obj"));
+                    if (type === 'add') {
+                        ws.send(JSON.stringify({ 'path': 'music/menu/add/song', query: { 'menu_id': menu_id, 'song': obj } }))
+                    } else if (type === 'del') {
+                        ws.send(JSON.stringify({ 'path': 'music/menu/del/song', query: { 'song': obj } }))
+                    }
+                }
+
+                Vue.onMounted(() => {
+                    if (localStorage.getItem('username') === null) window.location.href = './login.html'
+                })
+
+                return {
+                    message,
+                    current_music,
+                    music_local_list,
+                    music_search_list,
+                    filterStart,
+                    filterEnd,
+                    filter_value,
+                    handleFilter,
+                    durationFilter,
+                    singerFilter,
+                    search_value,
+                    handleSearch,
+                    download_queue,
+                    downloadMusic,
+                    playMusic,
+                    preMusic,
+                    nextMusic,
+                    play_mode,
+                    play_status,
+                    volume_mode,
+                    volume_value,
+                    handePlayMode,
+                    handePlayStatus,
+                    handeVolumeMode,
+                    progress,
+                    drag_btn,
+                    handelMouseDown,
+                    menu_list,
+                    menu_selected,
+                    handleMenuSelect,
+                    menu_input,
+                    menu_add_visible,
+                    addMenu,
+                    del_visible,
+                    dragStart,
+                    dragEnd,
+                    dragOver,
+                    dragLeave,
+                    drop
+                }
+            }
+        }).mount('#app')
+        function generate_uuid() {
+            let uuid = sessionStorage.getItem('uuid')
+            if (uuid == null) {
+                let d = new Date().getTime();
+                if (window.performance && typeof window.performance.now == "function") {
+                    d += performance.now(); //use high-precision timer if available
+                }
+                uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+                    /[xy]/g,
+                    function (c) {
+                        let r = (d + Math.random() * 16) % 16 | 0;
+                        d = Math.floor(d / 16);
+                        return (c == "x" ? r : (r & 0x3) | 0x8).toString(16);
+                    }
+                );
+                sessionStorage.setItem('uuid', uuid)
+            }
+            return uuid
+        }
+    </script>
+</body>
+
+</html>

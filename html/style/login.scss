@@ -1,0 +1,65 @@
+$vm_base: 1920;
+@function vm($px) {
+    @return ($px/$vm_base) * 100vw;
+}
+
+#app {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding-top: vm(120);
+    font-family: Microsoft YaHei;
+    box-sizing: border-box;
+}
+
+.login-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url(../img/bg.jpg) no-repeat center;
+    background-size: cover;
+    z-index: 999;
+    .input-border {
+        position: relative;
+        width: vm(320);
+        height: vm(36);
+        padding: vm(6) vm(24);
+        margin: vm(450) auto;
+        border-radius: vm(6);
+        background: white;
+        box-sizing: border-box;
+        box-shadow: 0 0 vm(15) rgba(255, 255, 255, 0.6);
+        opacity: 0.7;
+        .username-input {
+            position: relative;
+            float: left;
+            width: vm(240);
+            height: vm(24);
+            line-height: vm(24);
+            font-size: vm(18);
+            outline: none;
+            border: 0;
+            padding: 0;
+            letter-spacing: vm(1);
+        }
+        .login-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: vm(42);
+            height: vm(36);
+            line-height: vm(36);
+            border-radius: 0 vm(5) vm(5) 0;
+            font-size: vm(18);
+            background: url(../img/login.svg) no-repeat center, rgb(16, 36, 56);
+            background-size: contain;
+            color: rgb(246, 246, 246);
+            cursor: pointer;
+            &:active {
+                background-color: rgb(2, 20, 37);
+            }
+        }
+    }
+}

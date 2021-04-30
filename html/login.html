@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./style/normalize.css">
+    <link rel="stylesheet" href="./style/login.css">
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+    <title>小马音乐</title>
+</head>
+
+<body>
+    <div id="app">
+        <div class="login-wrapper">
+            <div class="input-border">
+                <input class="username-input" type="text" v-model="username" @keyup.enter="login" maxlength="16"
+                    placeholder="请输入用户名" />
+                <div class="login-btn" @click="login"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./js/vue.js"></script>
+    <script type="text/javascript">
+        Vue.createApp({
+            setup() {
+                function checkIsLogin() {
+                    if (localStorage.getItem('username')) {
+                        window.location.href = './index.html'
+                    }
+                }
+                let username = Vue.ref('')
+                function login() {
+                    if (username.value.trim()) {
+                        localStorage.setItem('username', username.value)
+                        checkIsLogin()
+                    }
+                }
+
+                Vue.onMounted(() => {
+                    checkIsLogin()
+                })
+
+                return { username, login }
+            }
+        }).mount('#app')
+    </script>
+</body>
+
+</html>
